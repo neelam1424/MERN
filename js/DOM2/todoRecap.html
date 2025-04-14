@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do App</title>
+</head>
+<body>
+    <input type="text" id="todo" placeholder="add task">
+    <button onClick="addTodo()">Add Task!</button>
+    
+</body>
+<script>
+    let ctr=1;
+    function deleteEl(){
+        const element=document.getElementById(index);
+        element.parentNode.removeChild(element);
+
+    }
+    function addTodo(){
+        const value=document.querySelector("input").value;
+        const spanEl=document.createElement("span")
+        const buttonEl=document.createElement("button");
+        spanEl.innerHTML=value;
+        buttonEl.innerHTML="Delete";
+
+        // const divEl=document.createElement("div").appendChild(spanEl).appendChild(buttonEl);
+
+        const divEl=document.createElement("div");
+        divEl.appendChild(spanEl);
+        divEl.appendChild(buttonEl);
+        
+        
+
+        // const newDivEl=document.createElement("div");
+        // newDivEl.innerHTML="<div>" + value+"<button onClick='deleteEl('+ctr+')'>Delete</button></div>";
+        // newDivEl.setAttribute("id",ctr);
+        // ctr=ctr+1;
+        document.querySelector("body").appendChild(divEl);
+    }
+</script>
+</html>

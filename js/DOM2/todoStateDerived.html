@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input id="todotext" placeholder="Enter your task" type="text">
+    <button onClick="addtodo()">Add Task!</button>
+    <div id="todo"></div>
+
+    <script>
+        let todos=[];
+        function addtodo(){
+            todos.push({
+                title: document.querySelector("input").value
+            })
+            render();
+        }
+
+
+
+        function render(){
+            document.querySelector("#todo").innerHTML="";
+            for (let i=0;i<todos.length;i++){
+                const todo=todos[i];
+            const div=document.createElement("div");
+            const h1=document.createElement("h1");
+            const button =document.createElement("button");
+            h1.innerHTML=todo.title;
+            button.innerHTML="Delete";
+            div.appendChild(h1);
+            div.appendChild(button);
+            document.querySelector("#todo").appendChild(div);
+            }
+        }
+    </script>
+    
+</body>
+</html>
