@@ -1,94 +1,109 @@
-const express =require("express");
-const {UserModel,TodoModel} =require("./db");
-const jwt =require("jsonwebtoken")
-const mongoose=require("mongoose");
-const JWT_SECRET="s3cret"
-const app=express();
-app.use(express.json());
-
+const bcrypt =require("bcrypt");
+const express = require("express");
+const { UserModel, TodoModel } = require("./db");
+const { auth, JWT_SECRET } = require("./auth");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 mongoose.connect("mongodb+srv://neelam:neelumore14@cluster0.z1oj5mz.mongodb.net/todo-app");
 
+const app = express();
+app.use(express.json());
+
+app.post("/signup", async function(req, res) {
+    const email = req.body.email;
+    const password = req.body.password;
+    const name = req.body.name;
 
 
+    let errorThrown =false;
+    try{
+    const hashedPassword= await bcrypt.hash(password,5);
 
 
-app.post("/signup",async function(req,res){
-const email=req.body.email;
-const password=req.body.password;
-const name=req.body.name;
+    await UserModel.create({
+        email: email,
+        password: hashedPassword,
+        name: name,
 
-await UserModel.create({
-    email:email,
-    password:password,
-    name:name,
-});
-res.json({
-    message:"You are signed up"
-})
-});
-
-app.post("/signin",async function(req,res){
-    const email=req.body.email;
-    const password=req.body.password;
-
-
-    const user =await UserModel.findOne({
-        email:email,
-        password:password,
     });
-    console.log(user);
+}catch(e){
+    
+    res.json({
+        message:"User already exist"
+    })
+    errorThrown =true;
+}
 
-    if(user){
-        const token=jwt.sign({
-            id:user._id
-            //id:response._id.toString()
-        },JWT_SECRET);
+if(!errorThrown){
+    res.json({
+        message: "You are signed up"
+    })
+}
+});
+
+app.post("/signin", async function(req, res) {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const response = await UserModel.findOne({
+        email: email,
+    });
+
+    if(!response){
+        res.status(403).json({
+            message: "User does not exist in our datatabase"
+        })
+        return
+    }
+
+    const passwordMatch=await bcrypt.compare(password,response.password);
+
+
+
+    if (passwordMatch) {
+        const token = jwt.sign({
+            id: response._id.toString()
+        }, JWT_SECRET);
 
         res.json({
             token
-        });
-    }else{
+        })
+    } else {
         res.status(403).json({
-            message:"Incorrect creds"
+            message: "Incorrect creds"
         })
     }
-    
 });
 
-app.post("/todo",auth,(req,res)=>{
-    const userId=req.userId;
+
+app.post("/todo", auth, async function(req, res) {
+    const userId = req.userId;
+    const title = req.body.title;
+    const done = req.body.done;
+
+    await TodoModel.create({
+        userId,
+        title,
+        done
+    });
+
     res.json({
-        userId:userId
+        message: "Todo created"
     })
-})
+});
 
-app.get("/todos",auth,(req,res)=>{
-    const userId=req.userId;
 
+app.get("/todos", auth, async function(req, res) {
+    const userId = req.userId;
+
+    const todos = await TodoModel.find({
+        userId
+    });
 
     res.json({
-        userId:userId
+        todos
     })
-})
-
-
-function auth(req,res,next){
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-        const decodeData = jwt.verify(token, JWT_SECRET);
-        req.userId = decodeData.id;
-        next();
-    } catch (err) {
-        return res.status(403).json({ message: 'Invalid token' });
-    }
-}
+});
 
 app.listen(3000);
